@@ -74,7 +74,7 @@
     tg?.ready();
     tg?.expand();
 
-    // Ajuste de tema (claro/escuro do Telegram)
+    // Tema (claro/escuro do Telegram)
     try {
       const t = tg?.themeParams || {};
       if (t.bg_color) document.documentElement.style.setProperty('--bg', '#'+t.bg_color);
@@ -83,13 +83,47 @@
       if (t.section_separator_color) document.documentElement.style.setProperty('--border', '#'+t.section_separator_color);
     } catch(e) {}
 
+    // Diagnóstico rápido (confirma que estamos dentro do Telegram)
+    try {
+      const p = tg?.platform || 'unknown';
+      const v = tg?.version || 'n/a';
+      console.log('[TG] platform=', p, 'version=', v);
+      tg?.showPopup?.({ title: 'WebApp', message: `Telegram OK (${p}, v${v})` });
+    } catch(e) {}
+
     const $q = document.getElementById('q');
     const $list = document.getElementById('list');
     const $empty = document.getElementById('empty');
     const $err = document.getElementById('err');
     const $btnCancel = document.getElementById('btn-cancelar');
 
-    let meds = []; // carregado de dropmed.json
+    let meds = [];               // carregado de dropmed.json
+    let selectedItem = null;     // item escolhido para enviar
+
+    // Configura MainButton (Android: fluxo mais confiável)
+    function setupMainButton() {
+      if (!tg?.MainButton) return;
+      tg.MainButton.hide();
+      tg.MainButton.onClick(() => {
+        if (!selectedItem) return;
+        const payload = {
+          produto_recnum:  selectedItem.produto_recnum,
+          produto_desc:    selectedItem.produto_desc,
+          grupo_recnum:    selectedItem.grupo_recnum,
+          grupo_desc:      selectedItem.grupo_desc,
+          subgrupo_recnum: selectedItem.subgrupo_recnum,
+          subgrupo_desc:   selectedItem.subgrupo_desc
+        };
+        try {
+          tg.sendData(JSON.stringify(payload));
+          setTimeout(() => { try { tg.close(); } catch(_){} }, 200);
+        } catch(e) {
+          console.error(e);
+          tg.showPopup?.({ title: 'Erro', message: 'Falha ao enviar ao bot.' });
+        }
+      });
+    }
+    setupMainButton();
 
     function render(items) {
       $list.innerHTML = '';
@@ -122,11 +156,9 @@
       t = setTimeout(() => {
         const term = normalize($q.value.trim());
         if (!term) {
-          // inicial/topo: mostrar apenas 5
-          render(meds.slice(0, 5));
+          render(meds.slice(0, 5)); // inicial/topo: 5 itens
           return;
         }
-        // filtra e limita a 5 itens
         const filtered = meds
           .filter(m => normalize(m.produto_desc).includes(term))
           .slice(0, 5);
@@ -135,43 +167,53 @@
     }
     $q.addEventListener('input', onInput);
 
+    // Ao selecionar: destacar e pedir confirmação pelo MainButton
     function select(item) {
-      const payload = {
-        produto_recnum:  item.produto_recnum,
-        produto_desc:    item.produto_desc,
-        grupo_recnum:    item.grupo_recnum,
-        grupo_desc:      item.grupo_desc,
-        subgrupo_recnum: item.subgrupo_recnum,
-        subgrupo_desc:   item.subgrupo_desc
-      };
-      try {
-        tg?.sendData(JSON.stringify(payload));
-      } catch (e) {
-        console.error(e);
-        alert('Não foi possível enviar ao bot.');
-      } finally {
-        tg?.close();
+      selectedItem = item;
+
+      // destaca visualmente o item
+      for (const li of $list.querySelectorAll('li')) li.style.outline = 'none';
+      const li = [...$list.children].find(li => +li.dataset.id === item.produto_recnum);
+      if (li) li.style.outline = '2px solid #888';
+
+      if (tg?.MainButton) {
+        tg.MainButton.setText(`Enviar “${(item.produto_desc || '').slice(0, 28)}” ao bot`);
+        tg.MainButton.show();
+        tg.HapticFeedback?.impactOccurred?.('light');
+        tg.showPopup?.({ title: 'Pronto', message: 'Toque em “Enviar … ao bot” para confirmar.' });
+      } else {
+        // Fallback: enviar direto (desktop antigo etc.)
+        try {
+          tg?.sendData(JSON.stringify({
+            produto_recnum:  item.produto_recnum,
+            produto_desc:    item.produto_desc,
+            grupo_recnum:    item.grupo_recnum,
+            grupo_desc:      item.grupo_desc,
+            subgrupo_recnum: item.subgrupo_recnum,
+            subgrupo_desc:   item.subgrupo_desc
+          }));
+          setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
+        } catch(e) {
+          console.error(e);
+          alert('Não foi possível enviar ao bot.');
+        }
       }
     }
 
-    // Botão "Cancelar" do WebApp: manda {cancel:true} e fecha
+    // Botão "Cancelar": envia {cancel:true} e fecha com pequeno delay
     $btnCancel.addEventListener('click', () => {
-      try {
-        tg?.sendData(JSON.stringify({ cancel: true }));
-      } catch(e) {}
-      tg?.close();
+      try { tg?.sendData(JSON.stringify({ cancel: true })); } catch(_) {}
+      setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
     });
 
+    // Carrega dropmed.json do mesmo diretório
     async function loadData() {
       try {
         const res = await fetch('./dropmed.json', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         meds = await res.json();
 
-        // sanity check
         meds = Array.isArray(meds) ? meds.filter(m => typeof m?.produto_desc === 'string') : [];
-
-        // ordena alfabeticamente para uma lista inicial mais previsível
         meds.sort((a, b) => (a.produto_desc || '').localeCompare(b.produto_desc || ''));
         render(meds.slice(0, 5));
         $q.focus();
@@ -181,7 +223,6 @@
         $err.style.display = 'block';
       }
     }
-
     loadData();
   </script>
 </body>
