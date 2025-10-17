@@ -1,0 +1,322 @@
+{
+  "102": {
+    "unidade_nome": "Usafa Aviacao",
+    "unidade_endereco": "Doutor Roberto De Almeida Vinhas",
+    "unidade_numero": "2929",
+    "unidade_bairro": "Aviacao",
+    "unidade_cep": "11702360",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.018944,
+    "lon": -46.4781312
+  },
+  "103": {
+    "unidade_nome": "Usafa Boqueirão",
+    "unidade_endereco": "Presidente Kennedy",
+    "unidade_numero": "918",
+    "unidade_bairro": "Boqueirao",
+    "unidade_cep": "11702485",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.018944,
+    "lon": -46.4781312
+  },
+  "105": {
+    "unidade_nome": "Usafa Mirim I",
+    "unidade_endereco": "Dos Sindicatos",
+    "unidade_numero": "635",
+    "unidade_bairro": "Mirim",
+    "unidade_cep": "11704650",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.018944,
+    "lon": -46.4781312
+  },
+  "106": {
+    "unidade_nome": "Usafa Tupi",
+    "unidade_endereco": "Meinacos",
+    "unidade_numero": "95",
+    "unidade_bairro": "Tupi",
+    "unidade_cep": "11703710",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.018944,
+    "lon": -46.4781312
+  },
+  "268": {
+    "unidade_nome": "Usafa Anhanguera",
+    "unidade_endereco": "Josefa Alves De Siqueira",
+    "unidade_numero": "649",
+    "unidade_bairro": "Anhanguera",
+    "unidade_cep": "11718000",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.018944,
+    "lon": -46.4781312
+  },
+  "269": {
+    "unidade_nome": "Usafa Caicara",
+    "unidade_endereco": "Mathilde De Azevedo Setubal",
+    "unidade_numero": "530",
+    "unidade_bairro": "Caicara",
+    "unidade_cep": "11706360",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0443649,
+    "lon": -46.5289256
+  },
+  "270": {
+    "unidade_nome": "Usafa Forte",
+    "unidade_endereco": "Rio Branco",
+    "unidade_numero": "562",
+    "unidade_bairro": "Canto Do Forte",
+    "unidade_cep": "11700200",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0065876,
+    "lon": -46.4061389
+  },
+  "271": {
+    "unidade_nome": "Usafa Guaramar",
+    "unidade_endereco": "Do Trabalhador",
+    "unidade_numero": "1717",
+    "unidade_bairro": "Gloria",
+    "unidade_cep": "11725000",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0090931,
+    "lon": -46.4065475
+  },
+  "272": {
+    "unidade_nome": "Usafa Melvi",
+    "unidade_endereco": "Joao Caetano",
+    "unidade_numero": "101",
+    "unidade_bairro": "Melvi",
+    "unidade_cep": "11712210",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0391976,
+    "lon": -46.528197
+  },
+  "273": {
+    "unidade_nome": "Usafa Mirim Ii",
+    "unidade_endereco": "Nossa Senhora Da Conceicao",
+    "unidade_numero": "400",
+    "unidade_bairro": "Nova Mirim",
+    "unidade_cep": "11717180",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.023324,
+    "lon": -46.4979467
+  },
+  "274": {
+    "unidade_nome": "Usafa Quietude",
+    "unidade_endereco": "Ruy Manoel Sampaio Seabra Pereira",
+    "unidade_numero": "500",
+    "unidade_bairro": "Quietude",
+    "unidade_cep": "11718330",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0158631,
+    "lon": -46.4841334
+  },
+  "275": {
+    "unidade_nome": "Usafa Real",
+    "unidade_endereco": "Das Begonias",
+    "unidade_numero": "453",
+    "unidade_bairro": "Florida",
+    "unidade_cep": "11708180",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0663303,
+    "lon": -46.5685844
+  },
+  "276": {
+    "unidade_nome": "Usafa Ribeiropolis",
+    "unidade_endereco": "Doutor Esmeraldo Soares Tarquinio Campos Filho",
+    "unidade_numero": "471",
+    "unidade_bairro": "Ribeiropolis",
+    "unidade_cep": "11714140",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0260263,
+    "lon": -46.5124895
+  },
+  "277": {
+    "unidade_nome": "Usafa Samambaia",
+    "unidade_endereco": "Das Araucarias",
+    "unidade_numero": "181",
+    "unidade_bairro": "Samambaia",
+    "unidade_cep": "11712490",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0324022,
+    "lon": -46.5293096
+  },
+  "278": {
+    "unidade_nome": "Usafa Sao Jorge",
+    "unidade_endereco": "Do Trabalhador",
+    "unidade_numero": "4242",
+    "unidade_bairro": "Antartica",
+    "unidade_cep": "11725000",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0088722,
+    "lon": -46.4554767
+  },
+  "279": {
+    "unidade_nome": "Usafa Solemar",
+    "unidade_endereco": "Presidente Kennedy",
+    "unidade_numero": "19726",
+    "unidade_bairro": "Solemar",
+    "unidade_cep": "11702485",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0774731,
+    "lon": -46.5907363
+  },
+  "280": {
+    "unidade_nome": "Usafa Tude Bastos",
+    "unidade_endereco": "Maria Luiza Lavalle",
+    "unidade_numero": "68",
+    "unidade_bairro": "Sitio Do Campo",
+    "unidade_cep": "11725100",
+    "municipio": "Praia Grande - SP",
+    "lat": -23.9942787,
+    "lon": -46.4238442
+  },
+  "281": {
+    "unidade_nome": "Usafa Tupiry Ii",
+    "unidade_endereco": "Ildefonso Galeano",
+    "unidade_numero": "368",
+    "unidade_bairro": "Tupiry",
+    "unidade_cep": "11719100",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0149405,
+    "lon": -46.4706928
+  },
+  "282": {
+    "unidade_nome": "Usafa Vila Alice",
+    "unidade_endereco": "Renata Camara Agondi",
+    "unidade_numero": "46",
+    "unidade_bairro": "Anhanguera",
+    "unidade_cep": "11717430",
+    "municipio": "Praia Grande - SP",
+    "lat": -23.9801442,
+    "lon": -46.3957574
+  },
+  "283": {
+    "unidade_nome": "Usafa Vila Sonia",
+    "unidade_endereco": "Antonio Candido Da Silva",
+    "unidade_numero": "1075",
+    "unidade_bairro": "Vila Sonia",
+    "unidade_cep": "11722000",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0023038,
+    "lon": -46.4453493
+  },
+  "290": {
+    "unidade_nome": "Usafa Esmeralda",
+    "unidade_endereco": "Menotti Del Picchia",
+    "unidade_numero": "S/N.º",
+    "unidade_bairro": "Esmeralda",
+    "unidade_cep": "11713480",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0292605,
+    "lon": -46.5186178
+  },
+  "962": {
+    "unidade_nome": "Usafa Antartica",
+    "unidade_endereco": "Do Trabalhador",
+    "unidade_numero": "3801",
+    "unidade_bairro": "Antartica",
+    "unidade_cep": "11725000",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0077954,
+    "lon": -46.4495918
+  },
+  "976": {
+    "unidade_nome": "Usafa Ocian",
+    "unidade_endereco": "Jose Jorge",
+    "unidade_numero": "559",
+    "unidade_bairro": "Ocian",
+    "unidade_cep": "11704090",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0228018,
+    "lon": -46.4755388
+  },
+  "982": {
+    "unidade_nome": "Usafa Maracanã",
+    "unidade_endereco": "Cesar Rodrigues Reis",
+    "unidade_numero": "850",
+    "unidade_bairro": "Maracana",
+    "unidade_cep": "11705510",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0375706,
+    "lon": -46.5117219
+  },
+  "1021": {
+    "unidade_nome": "Usafa Santa Marina",
+    "unidade_endereco": "Clovis Batista dos Santos",
+    "unidade_numero": "598",
+    "unidade_bairro": "Anhanguera",
+    "unidade_cep": "11717510",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0181892,
+    "lon": -46.4889747
+  },
+  "1022": {
+    "unidade_nome": "Usafa Rio Branco",
+    "unidade_endereco": "Hugo De Carvalho Ramos",
+    "unidade_numero": "1521",
+    "unidade_bairro": "Esmeralda",
+    "unidade_cep": "11713320",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0260548,
+    "lon": -46.524595
+  },
+  "1023": {
+    "unidade_nome": "Usafa Aloha",
+    "unidade_endereco": "Zenji Sasaki",
+    "unidade_numero": "269",
+    "unidade_bairro": "Nova Mirim",
+    "unidade_cep": "11717027",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.028099,
+    "lon": -46.5042285
+  },
+  "2089": {
+    "unidade_nome": "Usafa Princesa",
+    "unidade_endereco": "Vergilio Gabriel De Siqueira",
+    "unidade_numero": "20",
+    "unidade_bairro": "Princesa",
+    "unidade_cep": "11711170",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0611667,
+    "lon": -46.5630284
+  },
+  "2310": {
+    "unidade_nome": "Usafa Noêmia",
+    "unidade_endereco": "Avenida Presidente Kennedy - Lado Par",
+    "unidade_numero": "4960",
+    "unidade_bairro": "Tupi",
+    "unidade_cep": "11703200",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0127604,
+    "lon": -46.4342074
+  },
+  "2311": {
+    "unidade_nome": "Usafa Guilhermina",
+    "unidade_endereco": "Presidente Kennedy - Par",
+    "unidade_numero": "2100",
+    "unidade_bairro": "Guilhermina",
+    "unidade_cep": "11702200",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0069852,
+    "lon": -46.4300739
+  },
+  "3073": {
+    "unidade_nome": "Usafa Melvi Ii",
+    "unidade_endereco": "Frei Santa Rita Durao",
+    "unidade_numero": "S/N",
+    "unidade_bairro": "Melvi",
+    "unidade_cep": "11712110",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0312516,
+    "lon": -46.5165556
+  },
+  "2629": {
+    "unidade_nome": "Dispensário - Upa Quietude",
+    "unidade_endereco": "Ministro Marcos Freire",
+    "unidade_numero": "S/N",
+    "unidade_bairro": "Quietude",
+    "unidade_cep": "11717500",
+    "municipio": "Praia Grande - SP",
+    "lat": -24.0197206,
+    "lon": -46.4776878
+  }
+}
