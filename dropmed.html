@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Selecionar medicamento</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font: 16px system-ui, sans-serif; margin: 12px; }
+    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 10px; }
+    ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 60vh; overflow: auto; }
+    li { padding: 10px; border: 1px solid #eee; border-radius: 12px; margin-top: 8px; cursor: pointer; }
+    li:hover, li:focus { outline: none; border-color: #ddd; }
+    .empty { color: #888; padding: 12px; text-align: center; }
+    .error { color: #b00; padding: 12px; }
+  </style>
+</head>
+<body>
+  <input id="q" type="text" placeholder="Digite o nome do medicamento..." autocomplete="off" />
+  <ul id="list"></ul>
+  <div id="empty" class="empty" style="display:none;">Nenhum resultado</div>
+  <div id="err" class="error" style="display:none;"></div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+
+    const $q = document.getElementById('q');
+    const $list = document.getElementById('list');
+    const $empty = document.getElementById('empty');
+    const $err = document.getElementById('err');
+
+    let meds = []; // será carregado do dropmed.json
+
+    function render(items) {
+      $list.innerHTML = '';
+      if (!items.length) {
+        $empty.style.display = 'block';
+        return;
+      }
+      $empty.style.display = 'none';
+      for (const item of items) {
+        const li = document.createElement('li');
+        li.tabIndex = 0;
+        li.textContent = item.produto_desc;
+        li.dataset.id = item.produto_recnum;
+        li.addEventListener('click', () => select(item));
+        li.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') select(item);
+        });
+        $list.appendChild(li);
+      }
+    }
+
+    function normalize(s) {
+      return s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+    }
+
+    let t;
+    function onInput() {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const term = normalize($q.value.trim());
+        if (!term) { render(meds.slice(0, 50)); return; }
+        const filtered = meds.filter(m => normalize(m.produto_desc || '').includes(term)).slice(0, 200);
+        render(filtered);
+      }, 150);
+    }
+    $q.addEventListener('input', onInput);
+
+    function select(item) {
+      const payload = {
+        produto_recnum:  item.produto_recnum,
+        produto_desc:    item.produto_desc,
+        grupo_recnum:    item.grupo_recnum,
+        grupo_desc:      item.grupo_desc,
+        subgrupo_recnum: item.subgrupo_recnum,
+        subgrupo_desc:   item.subgrupo_desc
+      };
+      try {
+        tg?.sendData(JSON.stringify(payload));
+        tg?.close(); // opcional
+      } catch (e) {
+        alert('Não foi possível enviar ao bot.');
+        console.error(e);
+      }
+    }
+
+    async function loadData() {
+      try {
+        // se servir por arquivo estático, mantenha caminho relativo
+        const res = await fetch('./dropmed.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        meds = await res.json();
+
+        // segurança básica: garantir campos esperados
+        meds = Array.isArray(meds) ? meds.filter(m => typeof m?.produto_desc === 'string') : [];
+        render(meds.slice(0, 50));
+        $q.focus();
+      } catch (e) {
+        console.error('Falha ao carregar dropmed.json:', e);
+        $err.textContent = 'Falha ao carregar a lista de medicamentos. Tente novamente mais tarde.';
+        $err.style.display = 'block';
+      }
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
