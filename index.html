@@ -32,26 +32,24 @@
 
   <script>
     const tg = window.Telegram?.WebApp;
-    tg?.ready();
-    tg?.expand(); // usa mais área útil no mobile
-
-    // Algumas versões do Android pedem autorização para “escrever para o usuário”.
-    try {
-      tg?.requestWriteAccess?.((ok) => console.log("requestWriteAccess:", ok));
-    } catch (e) { /* opcional */ }
-
     const Q = document.getElementById('q');
     const LIST = document.getElementById('list');
     const BTN_CANCEL = document.getElementById('cancel');
-
     const DBG = document.getElementById('dbg');
     const BTN_PING = document.getElementById('ping');
 
-    function showDbg(msg){
-      if(DBG) DBG.textContent = msg;
+    // Caminho do JSON hospedado no mesmo repositório do Pages
+    const JSON_URL = './dropmed.json?v=' + Date.now();
+
+    let DATA = [];
+    let LAST_FILTER = '';
+    let SELECTED = null;
+
+    // ==== Status de SDK / Debug ====
+    function showDbg(msg) {
+      DBG.textContent = msg;
     }
 
-    // status do SDK
     if (!tg) {
       showDbg("SDK NÃO DETECTADO — página abriu fora do Telegram WebApp");
     } else {
@@ -59,84 +57,94 @@
       BTN_PING.style.display = 'inline-block';
       BTN_PING.onclick = () => {
         try {
-          tg.sendData(JSON.stringify({ping:true, ts: Date.now()}));
+          tg.sendData(JSON.stringify({ ping: true, ts: Date.now() }));
           tg.close();
-        } catch(e) {
+        } catch (e) {
           alert("sendData falhou: " + e);
         }
       };
     }
 
-    // Caminho do JSON hospedado no mesmo repositório do Pages
-    const JSON_URL = './dropmed.json?v=' + Date.now(); // cache-buster
+    tg?.ready();
+    tg?.expand();
 
-    let DATA = [];
-    let LAST_FILTER = '';
+    // ===== Funções auxiliares =====
+    function norm(s) {
+      return (s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
 
-    function norm(s){ return (s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+    // ===== Envio pelo botão azul =====
+    function enableMainButton() {
+      if (!tg) return;
+      tg.MainButton.setText("Enviar seleção");
+      tg.MainButton.show();
+      tg.MainButton.onClick(() => {
+        if (!SELECTED) {
+          tg.showAlert?.("Nenhum item selecionado.");
+          return;
+        }
+        try {
+          tg.sendData(JSON.stringify(SELECTED));
+        } catch (e) {
+          tg.showAlert?.("Falha ao enviar: " + e);
+          return;
+        }
+        setTimeout(() => tg.close(), 150); // evita corte de envio no Android
+      });
+    }
 
-    function render(filter){
+    // ===== Renderização da lista =====
+    function render(filter) {
       LAST_FILTER = filter = norm(filter);
       LIST.innerHTML = '';
-      if(!DATA.length) return;
+      if (!DATA.length) return;
 
       const max = 5;
       let count = 0;
 
-      for(const item of DATA){
+      for (const item of DATA) {
         const name = item.produto_desc || '';
-        if(filter && !norm(name).includes(filter)) continue;
+        if (filter && !norm(name).includes(filter)) continue;
 
         const li = document.createElement('li');
         li.textContent = name;
         li.onclick = () => {
-          // Envia imediatamente ao bot e fecha o Mini App
-          const payload = {
+          SELECTED = {
             produto_recnum: Number(item.produto_recnum),
             produto_desc: name
           };
-          try {
-            tg.sendData(JSON.stringify(payload));
-          } catch(e){
-            alert('Falha ao enviar dados ao bot: ' + e);
-            return;
-          }
-          // Fechar o Mini App após enviar
-          tg.close();
+          tg.HapticFeedback?.impactOccurred?.("light");
+          enableMainButton();
         };
         LIST.appendChild(li);
 
-        if(++count >= max) break;
+        if (++count >= max) break;
       }
     }
 
-    // Cancelar/Voltar: informa ao bot e fecha
+    // ===== Cancelar/Voltar =====
     BTN_CANCEL.onclick = () => {
       try {
         tg.sendData(JSON.stringify({ cancel: true }));
-      } catch(e){
-        // se não conseguir enviar, ainda assim fecha
-      }
+      } catch (e) {}
       tg.close();
     };
 
-    // Filtro em tempo real
+    // ===== Filtro em tempo real =====
     Q.addEventListener('input', (e) => render(e.target.value));
 
-    // Carrega o JSON
+    // ===== Carrega o JSON =====
     fetch(JSON_URL, { cache: 'no-store' })
       .then(r => {
-        if(!r.ok) throw new Error('HTTP ' + r.status);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(json => {
-        // Esperado: array de objetos com {produto_recnum, produto_desc}
         DATA = Array.isArray(json) ? json : [];
         render(Q.value);
       })
       .catch(err => {
         console.error('Erro carregando dropmed.json:', err);
-        // feedback opcional dentro do Mini App
         LIST.innerHTML = '<li style="color:#b00">Falha ao carregar a lista. Tente novamente mais tarde.</li>';
       });
   </script>
