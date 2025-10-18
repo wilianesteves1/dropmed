@@ -23,6 +23,10 @@
     <input id="q" type="text" placeholder="Digite o nome do medicamento..." autocomplete="off" />
     <button id="cancel">Voltar</button>
   </div>
+
+  <div id="dbg" class="muted" style="margin-top:8px"></div>
+  <button id="ping" style="margin-top:8px; display:none;">ENVIAR PING</button>
+
   <ul id="list"></ul>
   <div class="muted">Mostrando no máximo 5 itens.</div>
 
@@ -39,6 +43,29 @@
     const Q = document.getElementById('q');
     const LIST = document.getElementById('list');
     const BTN_CANCEL = document.getElementById('cancel');
+
+    const DBG = document.getElementById('dbg');
+    const BTN_PING = document.getElementById('ping');
+
+    function showDbg(msg){
+      if(DBG) DBG.textContent = msg;
+    }
+
+    // status do SDK
+    if (!tg) {
+      showDbg("SDK NÃO DETECTADO — página abriu fora do Telegram WebApp");
+    } else {
+      showDbg("SDK OK — plataforma: " + (tg.platform || "desconhecida"));
+      BTN_PING.style.display = 'inline-block';
+      BTN_PING.onclick = () => {
+        try {
+          tg.sendData(JSON.stringify({ping:true, ts: Date.now()}));
+          tg.close();
+        } catch(e) {
+          alert("sendData falhou: " + e);
+        }
+      };
+    }
 
     // Caminho do JSON hospedado no mesmo repositório do Pages
     const JSON_URL = './dropmed.json?v=' + Date.now(); // cache-buster
