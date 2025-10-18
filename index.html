@@ -74,9 +74,9 @@
     }
 
     // ===== Envio pelo botão azul =====
-    function enableMainButton() {
+    function enableMainButton(text = "Enviar seleção") {
       if (!tg) return;
-      tg.MainButton.setText("Enviar seleção");
+      tg.MainButton.setText(text);
       tg.MainButton.show();
       tg.MainButton.onClick(() => {
         if (!SELECTED) {
@@ -85,11 +85,11 @@
         }
         try {
           tg.sendData(JSON.stringify(SELECTED));
+          // Sem fechar imediatamente — mais seguro no Android
+          tg.showAlert?.("Enviado ao bot!");
         } catch (e) {
           tg.showAlert?.("Falha ao enviar: " + e);
-          return;
         }
-        setTimeout(() => tg.close(), 150); // evita corte de envio no Android
       });
     }
 
@@ -116,12 +116,16 @@
           tg.HapticFeedback?.impactOccurred?.("light");
           try {
             tg.sendData(JSON.stringify(SELECTED));
-            setTimeout(() => tg.close(), 150);
+            // ⚠️ Não fechar imediatamente: alguns Android perdem o pacote
+            enableMainButton("Enviado! Você já pode fechar.");
+            // Se mesmo assim quiser fechar sozinho, use um tempo maior:
+            // setTimeout(() => tg.close(), 800);
           } catch (e) {
-            enableMainButton();
+            enableMainButton("Enviar seleção");
             tg.showAlert?.("Toque em 'Enviar seleção' para concluir.");
           }
         };
+
 
         LIST.appendChild(li);
 
