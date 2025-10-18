@@ -24,6 +24,8 @@
     <button id="cancel">Voltar</button>
   </div>
 
+
+  
   <div id="dbg" class="muted" style="margin-top:8px"></div>
   <button id="ping" style="margin-top:8px; display:none;">ENVIAR PING</button>
 
@@ -159,5 +161,23 @@
         LIST.innerHTML = '<li style="color:#b00">Falha ao carregar a lista. Tente novamente mais tarde.</li>';
       });
   </script>
+    <!-- 🔹 Botão opcional para conceder permissão de escrita ao bot -->
+  <button id="grant" style="margin-top:8px;">Conectar ao bot</button>
+
+  <script>
+    const grant = document.getElementById('grant');
+    grant.onclick = () => {
+      const tg = window.Telegram?.WebApp;
+      tg?.requestWriteAccess((ok) => {
+        if (ok)
+          tg.showAlert?.("Permissão concedida. O bot pode enviar mensagens iniciadas pelo app.");
+        else
+          tg.showAlert?.("Permissão negada.");
+      });
+    };
+  </script>
+</body>
+</html>
+
 </body>
 </html>
