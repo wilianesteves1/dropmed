@@ -1,229 +1,117 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Selecionar medicamento</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Buscar Medicamento</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #111111;
-      --muted: #777777;
-      --border: #e6e6e6;
-    }
-    body {
-      font: 16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      margin: 12px;
-      background: var(--bg);
-      color: var(--fg);
-    }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      padding-bottom: 8px;
-      z-index: 2;
-    }
-    input {
-      width: 100%;
-      padding: 12px 12px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 14px;
-      background: #f6f6f6;
-      cursor: pointer;
-    }
-    button:active { transform: translateY(1px); }
-    ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 60vh; overflow: auto; }
-    li {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      margin-top: 8px;
-      cursor: pointer;
-      line-height: 1.25;
-    }
-    li:hover, li:focus { outline: none; border-color: #d6d6d6; }
-    .empty { color: var(--muted); padding: 12px; text-align: center; }
-    .error { color: #b00; padding: 12px; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    input { flex: 1; padding: 12px; font-size: 16px; }
+    button { padding: 12px 16px; font-size: 16px; border: 0; border-radius: 8px; }
+    #cancel { background: #eee; }
+    ul { list-style: none; padding: 0; margin: 8px 0 0 0; border: 1px solid #ddd; border-radius: 8px; }
+    li { padding: 10px 12px; cursor: pointer; }
+    li + li { border-top: 1px solid #eee; }
+    li:active { background: #f1f1f1; }
+    .muted { color: #666; font-size: 14px; margin-top: 8px; }
   </style>
 </head>
 <body>
   <div class="row">
     <input id="q" type="text" placeholder="Digite o nome do medicamento..." autocomplete="off" />
-    <button id="btn-cancelar" type="button" aria-label="Cancelar">Cancelar</button>
+    <button id="cancel">Voltar</button>
   </div>
-
-  <ul id="list" aria-live="polite" aria-label="Sugestões de medicamentos"></ul>
-  <div id="empty" class="empty" style="display:none;">Nenhum resultado</div>
-  <div id="err" class="error" style="display:none;"></div>
+  <ul id="list"></ul>
+  <div class="muted">Mostrando no máximo 5 itens.</div>
 
   <script>
     const tg = window.Telegram?.WebApp;
     tg?.ready();
-    tg?.expand();
+    tg?.expand(); // usa mais área útil no mobile
 
-    // Tema (claro/escuro do Telegram)
+    // Algumas versões do Android pedem autorização para “escrever para o usuário”.
     try {
-      const t = tg?.themeParams || {};
-      if (t.bg_color) document.documentElement.style.setProperty('--bg', '#'+t.bg_color);
-      if (t.text_color) document.documentElement.style.setProperty('--fg', '#'+t.text_color);
-      if (t.hint_color) document.documentElement.style.setProperty('--muted', '#'+t.hint_color);
-      if (t.section_separator_color) document.documentElement.style.setProperty('--border', '#'+t.section_separator_color);
-    } catch(e) {}
+      tg?.requestWriteAccess?.((ok) => console.log("requestWriteAccess:", ok));
+    } catch (e) { /* opcional */ }
 
-    // Diagnóstico rápido (confirma que estamos dentro do Telegram)
-    try {
-      const p = tg?.platform || 'unknown';
-      const v = tg?.version || 'n/a';
-      console.log('[TG] platform=', p, 'version=', v);
-      tg?.showPopup?.({ title: 'WebApp', message: `Telegram OK (${p}, v${v})` });
-    } catch(e) {}
+    const Q = document.getElementById('q');
+    const LIST = document.getElementById('list');
+    const BTN_CANCEL = document.getElementById('cancel');
 
-    const $q = document.getElementById('q');
-    const $list = document.getElementById('list');
-    const $empty = document.getElementById('empty');
-    const $err = document.getElementById('err');
-    const $btnCancel = document.getElementById('btn-cancelar');
+    // Caminho do JSON hospedado no mesmo repositório do Pages
+    const JSON_URL = './dropmed.json?v=' + Date.now(); // cache-buster
 
-    let meds = [];               // carregado de dropmed.json
-    let selectedItem = null;     // item escolhido para enviar
+    let DATA = [];
+    let LAST_FILTER = '';
 
-    // Configura MainButton (Android: fluxo mais confiável)
-    function setupMainButton() {
-      if (!tg?.MainButton) return;
-      tg.MainButton.hide();
-      tg.MainButton.onClick(() => {
-        if (!selectedItem) return;
-        const payload = {
-          produto_recnum:  selectedItem.produto_recnum,
-          produto_desc:    selectedItem.produto_desc,
-          grupo_recnum:    selectedItem.grupo_recnum,
-          grupo_desc:      selectedItem.grupo_desc,
-          subgrupo_recnum: selectedItem.subgrupo_recnum,
-          subgrupo_desc:   selectedItem.subgrupo_desc
-        };
-        try {
-          tg.sendData(JSON.stringify(payload));
-          setTimeout(() => { try { tg.close(); } catch(_){} }, 200);
-        } catch(e) {
-          console.error(e);
-          tg.showPopup?.({ title: 'Erro', message: 'Falha ao enviar ao bot.' });
-        }
-      });
-    }
-    setupMainButton();
+    function norm(s){ return (s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
 
-    function render(items) {
-      $list.innerHTML = '';
-      if (!items.length) {
-        $empty.style.display = 'block';
-        return;
-      }
-      $empty.style.display = 'none';
-      for (const item of items) {
+    function render(filter){
+      LAST_FILTER = filter = norm(filter);
+      LIST.innerHTML = '';
+      if(!DATA.length) return;
+
+      const max = 5;
+      let count = 0;
+
+      for(const item of DATA){
+        const name = item.produto_desc || '';
+        if(filter && !norm(name).includes(filter)) continue;
+
         const li = document.createElement('li');
-        li.tabIndex = 0;
-        li.textContent = item.produto_desc;
-        li.dataset.id = item.produto_recnum;
-        li.addEventListener('click', () => select(item));
-        li.addEventListener('keydown', (e) => { if (e.key === 'Enter') select(item); });
-        $list.appendChild(li);
+        li.textContent = name;
+        li.onclick = () => {
+          // Envia imediatamente ao bot e fecha o Mini App
+          const payload = {
+            produto_recnum: Number(item.produto_recnum),
+            produto_desc: name
+          };
+          try {
+            tg.sendData(JSON.stringify(payload));
+          } catch(e){
+            alert('Falha ao enviar dados ao bot: ' + e);
+            return;
+          }
+          // Fechar o Mini App após enviar
+          tg.close();
+        };
+        LIST.appendChild(li);
+
+        if(++count >= max) break;
       }
     }
 
-    function normalize(s) {
-      return (s || '')
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .toLowerCase();
-    }
-
-    let t;
-    function onInput() {
-      clearTimeout(t);
-      t = setTimeout(() => {
-        const term = normalize($q.value.trim());
-        if (!term) {
-          render(meds.slice(0, 5)); // inicial/topo: 5 itens
-          return;
-        }
-        const filtered = meds
-          .filter(m => normalize(m.produto_desc).includes(term))
-          .slice(0, 5);
-        render(filtered);
-      }, 120);
-    }
-    $q.addEventListener('input', onInput);
-
-    // Ao selecionar: destacar e pedir confirmação pelo MainButton
-    function select(item) {
-      selectedItem = item;
-
-      // destaca visualmente o item
-      for (const li of $list.querySelectorAll('li')) li.style.outline = 'none';
-      const li = [...$list.children].find(li => +li.dataset.id === item.produto_recnum);
-      if (li) li.style.outline = '2px solid #888';
-
-      if (tg?.MainButton) {
-        tg.MainButton.setText(`Enviar “${(item.produto_desc || '').slice(0, 28)}” ao bot`);
-        tg.MainButton.show();
-        tg.HapticFeedback?.impactOccurred?.('light');
-        tg.showPopup?.({ title: 'Pronto', message: 'Toque em “Enviar … ao bot” para confirmar.' });
-      } else {
-        // Fallback: enviar direto (desktop antigo etc.)
-        try {
-          tg?.sendData(JSON.stringify({
-            produto_recnum:  item.produto_recnum,
-            produto_desc:    item.produto_desc,
-            grupo_recnum:    item.grupo_recnum,
-            grupo_desc:      item.grupo_desc,
-            subgrupo_recnum: item.subgrupo_recnum,
-            subgrupo_desc:   item.subgrupo_desc
-          }));
-          setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
-        } catch(e) {
-          console.error(e);
-          alert('Não foi possível enviar ao bot.');
-        }
-      }
-    }
-
-    // Botão "Cancelar": envia {cancel:true} e fecha com pequeno delay
-    $btnCancel.addEventListener('click', () => {
-      try { tg?.sendData(JSON.stringify({ cancel: true })); } catch(_) {}
-      setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
-    });
-
-    // Carrega dropmed.json do mesmo diretório
-    async function loadData() {
+    // Cancelar/Voltar: informa ao bot e fecha
+    BTN_CANCEL.onclick = () => {
       try {
-        const res = await fetch('./dropmed.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        meds = await res.json();
-
-        meds = Array.isArray(meds) ? meds.filter(m => typeof m?.produto_desc === 'string') : [];
-        meds.sort((a, b) => (a.produto_desc || '').localeCompare(b.produto_desc || ''));
-        render(meds.slice(0, 5));
-        $q.focus();
-      } catch (e) {
-        console.error('Falha ao carregar dropmed.json:', e);
-        $err.textContent = 'Falha ao carregar a lista de medicamentos. Tente novamente mais tarde.';
-        $err.style.display = 'block';
+        tg.sendData(JSON.stringify({ cancel: true }));
+      } catch(e){
+        // se não conseguir enviar, ainda assim fecha
       }
-    }
-    loadData();
+      tg.close();
+    };
+
+    // Filtro em tempo real
+    Q.addEventListener('input', (e) => render(e.target.value));
+
+    // Carrega o JSON
+    fetch(JSON_URL, { cache: 'no-store' })
+      .then(r => {
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(json => {
+        // Esperado: array de objetos com {produto_recnum, produto_desc}
+        DATA = Array.isArray(json) ? json : [];
+        render(Q.value);
+      })
+      .catch(err => {
+        console.error('Erro carregando dropmed.json:', err);
+        // feedback opcional dentro do Mini App
+        LIST.innerHTML = '<li style="color:#b00">Falha ao carregar a lista. Tente novamente mais tarde.</li>';
+      });
   </script>
 </body>
 </html>
