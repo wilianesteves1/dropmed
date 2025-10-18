@@ -109,13 +109,24 @@
         const li = document.createElement('li');
         li.textContent = name;
         li.onclick = () => {
-          SELECTED = {
-            produto_recnum: Number(item.produto_recnum),
-            produto_desc: name
-          };
-          tg.HapticFeedback?.impactOccurred?.("light");
-          enableMainButton();
+        SELECTED = {
+          produto_recnum: Number(item.produto_recnum),
+          produto_desc: name
         };
+        tg.HapticFeedback?.impactOccurred?.("light");
+
+        // ✅ Envio imediato ao bot (melhor UX e evita perda de clique no Android)
+        try {
+          tg.sendData(JSON.stringify(SELECTED));
+          // Pequeno atraso antes de fechar para garantir que o envio chegue (Android)
+          setTimeout(() => tg.close(), 150);
+        } catch (e) {
+          // Fallback: mostra o botão azul se o envio direto falhar
+          enableMainButton();
+          tg.showAlert?.("Toque em 'Enviar seleção' para concluir.");
+        }
+      };
+
         LIST.appendChild(li);
 
         if (++count >= max) break;
