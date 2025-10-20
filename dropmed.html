@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Selecionar medicamento</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <style>
+    :root { --bg:#ffffff; --fg:#111111; --muted:#777777; --border:#e6e6e6; }
+    body { font:16px system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial; margin:12px; background:var(--bg); color:var(--fg); }
+    .row { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; position:sticky; top:0; background:var(--bg); padding-bottom:8px; z-index:2; }
+    input { width:100%; padding:12px 12px; border:1px solid var(--border); border-radius:12px; font-size:16px; }
+    button { padding:10px 14px; border:1px solid var(--border); border-radius:12px; font-size:14px; background:#f6f6f6; cursor:pointer; }
+    ul { list-style:none; padding:0; margin:8px 0 0; max-height:60vh; overflow:auto; }
+    li { padding:12px; border:1px solid var(--border); border-radius:12px; margin-top:8px; cursor:pointer; line-height:1.25; }
+    li:hover { border-color:#d6d6d6; background:#fafafa; }
+    .empty { color:var(--muted); padding:12px; text-align:center; }
+    .error { color:#b00; padding:12px; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <input id="q" type="text" placeholder="Digite o nome do medicamento..." autocomplete="off" />
+    <button id="btn-cancelar" type="button">Cancelar</button>
+  </div>
+
+  <ul id="list"></ul>
+  <div id="empty" class="empty" style="display:none;">Nenhum resultado</div>
+  <div id="err" class="error" style="display:none;"></div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready(); tg?.expand(); tg?.enableClosingConfirmation?.(false); tg?.BackButton?.hide?.();
+
+    try {
+      const t = tg?.themeParams || {};
+      if (t.bg_color) document.documentElement.style.setProperty('--bg', '#'+t.bg_color);
+      if (t.text_color) document.documentElement.style.setProperty('--fg', '#'+t.text_color);
+      if (t.hint_color) document.documentElement.style.setProperty('--muted', '#'+t.hint_color);
+      if (t.section_separator_color) document.documentElement.style.setProperty('--border', '#'+t.section_separator_color);
+    } catch(e){}
+
+    const $q = document.getElementById('q');
+    const $list = document.getElementById('list');
+    const $empty = document.getElementById('empty');
+    const $err = document.getElementById('err');
+    const $btnCancel = document.getElementById('btn-cancelar');
+    let meds = [];
+
+    function render(items) {
+      $list.innerHTML = '';
+      if (!items.length) { $empty.style.display = 'block'; return; }
+      $empty.style.display = 'none';
+      for (const item of items) {
+        const li = document.createElement('li');
+        li.textContent = item.produto_desc;
+        li.addEventListener('click', () => {
+          try {
+            tg?.sendData(JSON.stringify({
+              produto_recnum:  item.produto_recnum,
+              produto_desc:    item.produto_desc,
+              grupo_recnum:    item.grupo_recnum,
+              grupo_desc:      item.grupo_desc,
+              subgrupo_recnum: item.subgrupo_recnum,
+              subgrupo_desc:   item.subgrupo_desc
+            }));
+          } catch(e) {}
+          setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
+        });
+        $list.appendChild(li);
+      }
+    }
+
+    function normalize(s){ return (s||'').normalize('NFD').replace(/\\p{Diacritic}/gu,'').toLowerCase(); }
+
+    let timer;
+    function onInput() {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const term = normalize($q.value.trim());
+        if (!term) { render(meds.slice(0,5)); return; }
+        const filtered = meds.filter(m => normalize(m.produto_desc).includes(term)).slice(0,5);
+        render(filtered);
+      }, 100);
+    }
+    $q.addEventListener('input', onInput);
+
+    $btnCancel.addEventListener('click', () => {
+      try { tg?.sendData(JSON.stringify({ cancel:true })); } catch(_) {}
+      setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
+    });
+
+    async function loadData() {
+      try {
+        const res = await fetch('./dropmed.json?v=' + Date.now(), { cache:'no-store' });
+        if (!res.ok) throw new Error(res.status);
+        meds = await res.json();
+        meds = Array.isArray(meds) ? meds.filter(m => m?.produto_desc) : [];
+        meds.sort((a,b)=>a.produto_desc.localeCompare(b.produto_desc));
+        render(meds.slice(0,5)); $q.focus();
+      } catch(e){
+        $err.textContent = 'Falha ao carregar a lista de medicamentos.';
+        $err.style.display = 'block';
+      }
+    }
+    loadData();
+  </script>
+</body>
+</html>
