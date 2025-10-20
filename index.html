@@ -13,7 +13,7 @@
       --border: #e6e6e6;
     }
     body {
-      font: 16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font: 16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial;
       margin: 12px;
       background: var(--bg);
       color: var(--fg);
@@ -44,7 +44,6 @@
       background: #f6f6f6;
       cursor: pointer;
     }
-    button:active { transform: translateY(1px); }
     ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 60vh; overflow: auto; }
     li {
       padding: 12px;
@@ -54,7 +53,7 @@
       cursor: pointer;
       line-height: 1.25;
     }
-    li:hover, li:focus { outline: none; border-color: #d6d6d6; }
+    li:hover { border-color: #d6d6d6; background: #fafafa; }
     .empty { color: var(--muted); padding: 12px; text-align: center; }
     .error { color: #b00; padding: 12px; }
   </style>
@@ -62,10 +61,10 @@
 <body>
   <div class="row">
     <input id="q" type="text" placeholder="Digite o nome do medicamento..." autocomplete="off" />
-    <button id="btn-cancelar" type="button" aria-label="Cancelar">Cancelar</button>
+    <button id="btn-cancelar" type="button">Cancelar</button>
   </div>
 
-  <ul id="list" aria-live="polite" aria-label="Sugestões de medicamentos"></ul>
+  <ul id="list"></ul>
   <div id="empty" class="empty" style="display:none;">Nenhum resultado</div>
   <div id="err" class="error" style="display:none;"></div>
 
@@ -74,169 +73,72 @@
     tg?.ready();
     tg?.expand();
 
-    // Tema (claro/escuro do Telegram)
+    // Aplicar tema do Telegram
     try {
       const t = tg?.themeParams || {};
       if (t.bg_color) document.documentElement.style.setProperty('--bg', '#'+t.bg_color);
       if (t.text_color) document.documentElement.style.setProperty('--fg', '#'+t.text_color);
       if (t.hint_color) document.documentElement.style.setProperty('--muted', '#'+t.hint_color);
       if (t.section_separator_color) document.documentElement.style.setProperty('--border', '#'+t.section_separator_color);
-    } catch(e) {}
-
-  // Diagnóstico silencioso (sem popup)
-  try {
-    const p = tg?.platform || 'unknown';
-    const v = tg?.version || 'n/a';
-    // console.log('[TG] platform=', p, 'version=', v); // se quiser, pode manter
-    // (Sem popup.)
-  } catch(e) {}
+    } catch(e){}
 
     const $q = document.getElementById('q');
     const $list = document.getElementById('list');
     const $empty = document.getElementById('empty');
     const $err = document.getElementById('err');
     const $btnCancel = document.getElementById('btn-cancelar');
-
-    let meds = [];               // carregado de dropmed.json
-    let selectedItem = null;     // item escolhido para enviar
-
-    // Configura MainButton (Android: fluxo mais confiável)
-    let sentOnce = false;
-
-    function setupMainButton() {
-      if (!tg?.MainButton) return;
-      tg.MainButton.hide();
-      tg.MainButton.onClick(() => {
-        if (!selectedItem) return;
-        const payload = {
-          produto_recnum:  selectedItem.produto_recnum,
-          produto_desc:    selectedItem.produto_desc,
-          grupo_recnum:    selectedItem.grupo_recnum,
-          grupo_desc:      selectedItem.grupo_desc,
-          subgrupo_recnum: selectedItem.subgrupo_recnum,
-          subgrupo_desc:   selectedItem.subgrupo_desc
-        };
-        try {
-          tg.sendData(JSON.stringify(payload));
-          setTimeout(() => { try { tg.close(); } catch(_){} }, 200);
-        } catch(e) {
-          console.error(e);
-          tg.showPopup?.({ title: 'Erro', message: 'Falha ao enviar ao bot.' });
-        }
-      });
-    }
-    setupMainButton();
+    let meds = [];
 
     function render(items) {
       $list.innerHTML = '';
-      if (!items.length) {
-        $empty.style.display = 'block';
-        return;
-      }
+      if (!items.length) { $empty.style.display = 'block'; return; }
       $empty.style.display = 'none';
       for (const item of items) {
         const li = document.createElement('li');
-        li.tabIndex = 0;
         li.textContent = item.produto_desc;
-        li.dataset.id = item.produto_recnum;
-        li.addEventListener('click', () => select(item));
-        li.addEventListener('keydown', (e) => { if (e.key === 'Enter') select(item); });
+        li.addEventListener('click', () => {
+          try {
+            tg?.sendData(JSON.stringify(item));
+            setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
+          } catch(e){ console.error(e); }
+        });
         $list.appendChild(li);
       }
     }
 
     function normalize(s) {
-      return (s || '')
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
-        .toLowerCase();
+      return (s || '').normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
     }
 
-    let t;
+    let timer;
     function onInput() {
-      clearTimeout(t);
-      t = setTimeout(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
         const term = normalize($q.value.trim());
-        if (!term) {
-          render(meds.slice(0, 5)); // inicial/topo: 5 itens
-          return;
-        }
-        const filtered = meds
-          .filter(m => normalize(m.produto_desc).includes(term))
-          .slice(0, 5);
+        if (!term) { render(meds.slice(0, 5)); return; }
+        const filtered = meds.filter(m => normalize(m.produto_desc).includes(term)).slice(0, 5);
         render(filtered);
-      }, 120);
+      }, 100);
     }
     $q.addEventListener('input', onInput);
 
-    // Ao selecionar: destacar e pedir confirmação pelo MainButton
-  function select(item) {
-    selectedItem = item;
-
-    // destaca visualmente o item
-    for (const li of $list.querySelectorAll('li')) li.style.outline = 'none';
-    const li = [...$list.children].find(li => +li.dataset.id === item.produto_recnum);
-    if (li) li.style.outline = '2px solid #888';
-
-    const payload = {
-      produto_recnum:  item.produto_recnum,
-      produto_desc:    item.produto_desc,
-      grupo_recnum:    item.grupo_recnum,
-      grupo_desc:      item.grupo_desc,
-      subgrupo_recnum: item.subgrupo_recnum,
-      subgrupo_desc:   item.subgrupo_desc
-    };
-
-    // ✅ Enviar imediatamente ao bot (UX mais simples)
-    if (!sentOnce) {
-      try {
-        tg?.sendData(JSON.stringify(payload));
-        sentOnce = true;
-        setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
-        return; // já enviou, não precisa do MainButton
-      } catch(e) {
-        console.warn('Falha no envio imediato, caindo no MainButton:', e);
-      }
-    }
-
-    // 🔁 Fallback: usar o MainButton (Android/iOS antigo ou ambiente restrito)
-    if (tg?.MainButton) {
-      tg.MainButton.setText(`Enviar “${(item.produto_desc || '').slice(0, 28)}” ao bot`);
-      tg.MainButton.show();
-      tg.HapticFeedback?.impactOccurred?.('light');
-      tg.showPopup?.({ title: 'Pronto', message: 'Toque em “Enviar … ao bot” para confirmar.' });
-    } else {
-      // Fallback derradeiro: tentar enviar de novo e fechar
-      try {
-        tg?.sendData(JSON.stringify(payload));
-        setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
-      } catch(e) {
-        console.error(e);
-        alert('Não foi possível enviar ao bot.');
-      }
-    }
-  }
-
-    // Botão "Cancelar": envia {cancel:true} e fecha com pequeno delay
     $btnCancel.addEventListener('click', () => {
       try { tg?.sendData(JSON.stringify({ cancel: true })); } catch(_) {}
       setTimeout(() => { try { tg?.close(); } catch(_){} }, 200);
     });
 
-    // Carrega dropmed.json do mesmo diretório
     async function loadData() {
       try {
         const res = await fetch('./dropmed.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error(res.status);
         meds = await res.json();
-
-        meds = Array.isArray(meds) ? meds.filter(m => typeof m?.produto_desc === 'string') : [];
-        meds.sort((a, b) => (a.produto_desc || '').localeCompare(b.produto_desc || ''));
-        render(meds.slice(0, 5));
+        meds = Array.isArray(meds) ? meds.filter(m => m?.produto_desc) : [];
+        meds.sort((a,b)=>a.produto_desc.localeCompare(b.produto_desc));
+        render(meds.slice(0,5));
         $q.focus();
-      } catch (e) {
-        console.error('Falha ao carregar dropmed.json:', e);
-        $err.textContent = 'Falha ao carregar a lista de medicamentos. Tente novamente mais tarde.';
+      } catch(e){
+        console.error('Erro ao carregar dropmed.json:', e);
+        $err.textContent = 'Falha ao carregar a lista de medicamentos.';
         $err.style.display = 'block';
       }
     }
