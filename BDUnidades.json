@@ -6,8 +6,8 @@
     "unidade_bairro": "Aviacao",
     "unidade_cep": "11702360",
     "municipio": "Praia Grande - SP",
-    "lat": -24.018944,
-    "lon": -46.4781312
+    "lat": -24.0099169,
+    "lon": -46.4401521
   },
   "103": {
     "unidade_nome": "Usafa Boqueirão",
@@ -16,8 +16,8 @@
     "unidade_bairro": "Boqueirao",
     "unidade_cep": "11702485",
     "municipio": "Praia Grande - SP",
-    "lat": -24.018944,
-    "lon": -46.4781312
+    "lat": -24.0031709,
+    "lon": -46.4191794
   },
   "105": {
     "unidade_nome": "Usafa Mirim I",
@@ -26,8 +26,8 @@
     "unidade_bairro": "Mirim",
     "unidade_cep": "11704650",
     "municipio": "Praia Grande - SP",
-    "lat": -24.018944,
-    "lon": -46.4781312
+    "lat": -24.0258617,
+    "lon": -46.4916884
   },
   "106": {
     "unidade_nome": "Usafa Tupi",
@@ -36,8 +36,8 @@
     "unidade_bairro": "Tupi",
     "unidade_cep": "11703710",
     "municipio": "Praia Grande - SP",
-    "lat": -24.018944,
-    "lon": -46.4781312
+    "lat": -24.0211051,
+    "lon": -46.4643619
   },
   "268": {
     "unidade_nome": "Usafa Anhanguera",
@@ -46,8 +46,8 @@
     "unidade_bairro": "Anhanguera",
     "unidade_cep": "11718000",
     "municipio": "Praia Grande - SP",
-    "lat": -24.018944,
-    "lon": -46.4781312
+    "lat": -24.0181187,
+    "lon": -46.4880028
   },
   "269": {
     "unidade_nome": "Usafa Caicara",
@@ -56,8 +56,8 @@
     "unidade_bairro": "Caicara",
     "unidade_cep": "11706360",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0443649,
-    "lon": -46.5289256
+    "lat": -24.0444701,
+    "lon": -46.5286561
   },
   "270": {
     "unidade_nome": "Usafa Forte",
@@ -66,8 +66,8 @@
     "unidade_bairro": "Canto Do Forte",
     "unidade_cep": "11700200",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0065876,
-    "lon": -46.4061389
+    "lat": -24.0091023,
+    "lon": -46.406267
   },
   "271": {
     "unidade_nome": "Usafa Guaramar",
@@ -76,8 +76,8 @@
     "unidade_bairro": "Gloria",
     "unidade_cep": "11725000",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0090931,
-    "lon": -46.4065475
+    "lat": -24.002594,
+    "lon": -46.4303358
   },
   "272": {
     "unidade_nome": "Usafa Melvi",
@@ -86,8 +86,8 @@
     "unidade_bairro": "Melvi",
     "unidade_cep": "11712210",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0391976,
-    "lon": -46.528197
+    "lat": -24.0375769,
+    "lon": -46.5315787
   },
   "273": {
     "unidade_nome": "Usafa Mirim Ii",
@@ -96,8 +96,8 @@
     "unidade_bairro": "Nova Mirim",
     "unidade_cep": "11717180",
     "municipio": "Praia Grande - SP",
-    "lat": -24.023324,
-    "lon": -46.4979467
+    "lat": -24.0231929,
+    "lon": -46.4975952
   },
   "274": {
     "unidade_nome": "Usafa Quietude",
@@ -106,8 +106,8 @@
     "unidade_bairro": "Quietude",
     "unidade_cep": "11718330",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0158631,
-    "lon": -46.4841334
+    "lat": -24.0157511,
+    "lon": -46.483032
   },
   "275": {
     "unidade_nome": "Usafa Real",
@@ -116,8 +116,8 @@
     "unidade_bairro": "Florida",
     "unidade_cep": "11708180",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0663303,
-    "lon": -46.5685844
+    "lat": -24.0664977,
+    "lon": -46.5682247
   },
   "276": {
     "unidade_nome": "Usafa Ribeiropolis",
@@ -126,8 +126,8 @@
     "unidade_bairro": "Ribeiropolis",
     "unidade_cep": "11714140",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0260263,
-    "lon": -46.5124895
+    "lat": -24.0260799,
+    "lon": -46.5119042
   },
   "277": {
     "unidade_nome": "Usafa Samambaia",
@@ -136,8 +136,8 @@
     "unidade_bairro": "Samambaia",
     "unidade_cep": "11712490",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0324022,
-    "lon": -46.5293096
+    "lat": -24.0324608,
+    "lon": -46.5287638
   },
   "278": {
     "unidade_nome": "Usafa Sao Jorge",
@@ -146,8 +146,8 @@
     "unidade_bairro": "Antartica",
     "unidade_cep": "11725000",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0088722,
-    "lon": -46.4554767
+    "lat": -24.0088533,
+    "lon": -46.4548414
   },
   "279": {
     "unidade_nome": "Usafa Solemar",
@@ -156,8 +156,8 @@
     "unidade_bairro": "Solemar",
     "unidade_cep": "11702485",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0774731,
-    "lon": -46.5907363
+    "lat": -24.077478,
+    "lon": -46.5881614
   },
   "280": {
     "unidade_nome": "Usafa Tude Bastos",
@@ -166,8 +166,8 @@
     "unidade_bairro": "Sitio Do Campo",
     "unidade_cep": "11725100",
     "municipio": "Praia Grande - SP",
-    "lat": -23.9942787,
-    "lon": -46.4238442
+    "lat": -23.9942836,
+    "lon": -46.4212693
   },
   "281": {
     "unidade_nome": "Usafa Tupiry Ii",
@@ -176,8 +176,8 @@
     "unidade_bairro": "Tupiry",
     "unidade_cep": "11719100",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0149405,
-    "lon": -46.4706928
+    "lat": -24.0148463,
+    "lon": -46.4702244
   },
   "282": {
     "unidade_nome": "Usafa Vila Alice",
@@ -186,8 +186,8 @@
     "unidade_bairro": "Anhanguera",
     "unidade_cep": "11717430",
     "municipio": "Praia Grande - SP",
-    "lat": -23.9801442,
-    "lon": -46.3957574
+    "lat": -24.0217868,
+    "lon": -46.490523
   },
   "283": {
     "unidade_nome": "Usafa Vila Sonia",
@@ -206,8 +206,8 @@
     "unidade_bairro": "Esmeralda",
     "unidade_cep": "11713480",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0292605,
-    "lon": -46.5186178
+    "lat": -24.0324613,
+    "lon": -46.5152155
   },
   "962": {
     "unidade_nome": "Usafa Antartica",
@@ -256,8 +256,8 @@
     "unidade_bairro": "Esmeralda",
     "unidade_cep": "11713320",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0260548,
-    "lon": -46.524595
+    "lat": -24.0260499,
+    "lon": -46.5271699
   },
   "1023": {
     "unidade_nome": "Usafa Aloha",
@@ -286,8 +286,8 @@
     "unidade_bairro": "Tupi",
     "unidade_cep": "11703200",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0127604,
-    "lon": -46.4342074
+    "lat": -24.0166363,
+    "lon": -46.4585844
   },
   "2311": {
     "unidade_nome": "Usafa Guilhermina",
@@ -306,8 +306,8 @@
     "unidade_bairro": "Melvi",
     "unidade_cep": "11712110",
     "municipio": "Praia Grande - SP",
-    "lat": -24.0312516,
-    "lon": -46.5165556
+    "lat": -24.0358385,
+    "lon": -46.538091
   },
   "2629": {
     "unidade_nome": "Dispensário - Upa Quietude",
