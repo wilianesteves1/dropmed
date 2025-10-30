@@ -21,9 +21,7 @@
       --card-hover: #f1f1f1;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font: 16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial;
@@ -33,7 +31,6 @@
       min-height: 100vh;
     }
 
-    /* barra de busca */
     .row {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -56,9 +53,7 @@
       color: var(--fg);
       outline: none;
     }
-    input::placeholder {
-      color: var(--muted);
-    }
+    input::placeholder { color: var(--muted); }
 
     button {
       padding: 10px 14px;
@@ -69,11 +64,8 @@
       color: var(--fg);
       cursor: pointer;
     }
-    button:hover {
-      background: var(--card-hover);
-    }
+    button:hover { background: var(--card-hover); }
 
-    /* lista */
     ul {
       list-style: none;
       padding: 0;
@@ -129,7 +121,6 @@
       margin-top: 8px;
     }
 
-    /* scrollbar visível no dark */
     :root[data-forced-dark="1"] ::-webkit-scrollbar {
       width: 6px;
     }
@@ -168,58 +159,73 @@
       return l > 180;
     }
 
-    function applyTelegramTheme() {
-      try {
-        const t = tg?.themeParams || {};
-        const scheme = tg?.colorScheme || 'light';
+    // detecta dark do dispositivo
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
 
-        // cores que podem vir do Telegram
-        const bg      = t.bg_color ? `#${t.bg_color}` : null;
-        const bg2     = t.secondary_bg_color ? `#${t.secondary_bg_color}` : null;
-        const text    = t.text_color ? `#${t.text_color}` : null;
-        const hint    = t.hint_color ? `#${t.hint_color}` : null;
-        const border  = t.section_separator_color ? `#${t.section_separator_color}` : null;
+    function applyTheme() {
+      const t = tg?.themeParams || {};
+      const schemeFromTelegram = tg?.colorScheme; // 'dark' | 'light' | undefined
 
-        // aplica direto o que vier
-        if (bg)    document.documentElement.style.setProperty('--bg', bg);
-        if (bg2)   document.documentElement.style.setProperty('--bg2', bg2);
-        if (text)  document.documentElement.style.setProperty('--fg', text);
-        if (hint)  document.documentElement.style.setProperty('--muted', hint);
-        if (border)document.documentElement.style.setProperty('--border', border);
+      // cores que podem vir do Telegram
+      const bg      = t.bg_color ? `#${t.bg_color}` : null;
+      const bg2     = t.secondary_bg_color ? `#${t.secondary_bg_color}` : null;
+      const text    = t.text_color ? `#${t.text_color}` : null;
+      const hint    = t.hint_color ? `#${t.hint_color}` : null;
+      const border  = t.section_separator_color ? `#${t.section_separator_color}` : null;
 
-        // detectar se é dark: se o Telegram disse dark OU se o texto for claro
-        const telegramSaysDark = scheme === 'dark';
-        const looksDark = text ? isColorLight(text) : false;
-        const isDark = telegramSaysDark || looksDark;
+      // aplica direto o que vier
+      if (bg)    document.documentElement.style.setProperty('--bg', bg);
+      if (bg2)   document.documentElement.style.setProperty('--bg2', bg2);
+      if (text)  document.documentElement.style.setProperty('--fg', text);
+      if (hint)  document.documentElement.style.setProperty('--muted', hint);
+      if (border)document.documentElement.style.setProperty('--border', border);
 
-        if (isDark) {
-          // forçar modo escuro legível
-          document.documentElement.dataset.forcedDark = '1';
+      // 1) prioridade: telegram
+      let isDark = schemeFromTelegram === 'dark';
 
-          document.documentElement.style.setProperty('--bg', bg || '#0f172a');
-          document.documentElement.style.setProperty('--bg2', bg2 || '#111827');
-          document.documentElement.style.setProperty('--card', 'rgba(15,23,42,0.35)');
-          document.documentElement.style.setProperty('--card-hover', 'rgba(148,163,184,0.08)');
-          document.documentElement.style.setProperty('--fg', text || '#e2e8f0');
-          document.documentElement.style.setProperty('--muted', hint || '#94a3b8');
-          document.documentElement.style.setProperty('--border', border || 'rgba(148,163,184,0.35)');
-        } else {
-          // volta para claro padrão
-          document.documentElement.dataset.forcedDark = '0';
-          document.documentElement.style.setProperty('--bg', bg || '#ffffff');
-          document.documentElement.style.setProperty('--card', '#ffffff');
-          document.documentElement.style.setProperty('--card-hover', '#f1f1f1');
-          document.documentElement.style.setProperty('--fg', text || '#111111');
-          document.documentElement.style.setProperty('--muted', hint || '#777777');
-          document.documentElement.style.setProperty('--border', border || '#e6e6e6');
-        }
-      } catch (e) {
-        console.warn('theme error', e);
+      // 2) se o telegram não falou nada, olha o device
+      if (!schemeFromTelegram && prefersDark?.matches) {
+        isDark = true;
+      }
+
+      // 3) se ainda não temos certeza mas recebemos text claro do telegram, força dark
+      if (!isDark && text && isColorLight(text)) {
+        isDark = true;
+      }
+
+      if (isDark) {
+        document.documentElement.dataset.forcedDark = '1';
+        document.documentElement.style.setProperty('--bg', bg || '#0f172a');
+        document.documentElement.style.setProperty('--bg2', bg2 || '#111827');
+        document.documentElement.style.setProperty('--card', 'rgba(15,23,42,0.35)');
+        document.documentElement.style.setProperty('--card-hover', 'rgba(148,163,184,0.08)');
+        document.documentElement.style.setProperty('--fg', text || '#e2e8f0');
+        document.documentElement.style.setProperty('--muted', hint || '#94a3b8');
+        document.documentElement.style.setProperty('--border', border || 'rgba(148,163,184,0.35)');
+      } else {
+        document.documentElement.dataset.forcedDark = '0';
+        document.documentElement.style.setProperty('--bg', bg || '#ffffff');
+        document.documentElement.style.setProperty('--card', '#ffffff');
+        document.documentElement.style.setProperty('--card-hover', '#f1f1f1');
+        document.documentElement.style.setProperty('--fg', text || '#111111');
+        document.documentElement.style.setProperty('--muted', hint || '#777777');
+        document.documentElement.style.setProperty('--border', border || '#e6e6e6');
       }
     }
 
-    applyTelegramTheme();
-    tg?.onEvent?.('themeChanged', applyTelegramTheme);
+    // aplica já
+    applyTheme();
+
+    // se o telegram mudar de tema
+    tg?.onEvent?.('themeChanged', applyTheme);
+
+    // se o device mudar de tema enquanto o webapp está aberto
+    if (prefersDark && prefersDark.addEventListener) {
+      prefersDark.addEventListener('change', applyTheme);
+    } else if (prefersDark && prefersDark.addListener) {
+      // safari velho
+      prefersDark.addListener(applyTheme);
+    }
 
     const $q = document.getElementById('q');
     const $list = document.getElementById('list');
@@ -311,7 +317,6 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         meds = await res.json();
         meds = Array.isArray(meds) ? meds.filter(m => m?.produto_desc) : [];
-        // ordena pelo nome
         meds.sort((a, b) => a.produto_desc.localeCompare(b.produto_desc));
         render(meds.slice(0, 5));
         $q.focus();
