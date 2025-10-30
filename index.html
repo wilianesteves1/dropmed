@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,18 +10,42 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
+    /* tema base (claro) */
     :root {
       --bg: #ffffff;
-      --fg: #111111;
-      --muted: #777777;
-      --border: #e6e6e6;
+      --bg-soft: #f3f4f6;
+      --fg: #0f172a;
+      --muted: #6b7280;
+      --border: rgba(15, 23, 42, 0.08);
+      --card: #ffffff;
+      --hover: #eef2ff;
+      --radius: 12px;
     }
+
+    /* quando o Telegram disser que está em dark, a gente troca aqui */
+    :root[data-theme="dark"] {
+      --bg: #0f172a;              /* fundo da página */
+      --bg-soft: #111827;         /* barra de busca, fundo da lista */
+      --fg: #e2e8f0;              /* texto principal */
+      --muted: #94a3b8;           /* texto fraco */
+      --border: rgba(148, 163, 184, 0.25);
+      --card: rgba(15, 23, 42, 0.45);
+      --hover: rgba(148, 163, 184, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font: 16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial;
       margin: 12px;
       background: var(--bg);
       color: var(--fg);
+      min-height: 100vh;
     }
+
+    /* barra de busca fixa no topo, com o mesmo fundo do tema */
     .row {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -33,33 +57,95 @@
       padding-bottom: 8px;
       z-index: 2;
     }
+
     input {
       width: 100%;
       padding: 12px 12px;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius);
       font-size: 16px;
+      background: var(--bg-soft);
+      color: var(--fg);
+      outline: none;
     }
+    input::placeholder {
+      color: var(--muted);
+    }
+
     button {
       padding: 10px 14px;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius);
       font-size: 14px;
-      background: #f6f6f6;
+      background: var(--bg-soft);
+      color: var(--fg);
       cursor: pointer;
+      min-width: 90px;
     }
-    ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 60vh; overflow: auto; }
+    button:active {
+      filter: brightness(0.95);
+    }
+
+    /* lista de itens */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      max-height: 60vh;
+      overflow: auto;
+    }
+
     li {
-      padding: 12px;
+      padding: 12px 12px 8px;
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius);
       margin-top: 8px;
       cursor: pointer;
+      background: var(--card);
       line-height: 1.25;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
-    li:hover { border-color: #d6d6d6; background: #fafafa; }
-    .empty { color: var(--muted); padding: 12px; text-align: center; }
-    .error { color: #b00; padding: 12px; }
+
+    /* destaque de nome e grupo, pra ficar legível nos dois modos */
+    .med-nome {
+      font-weight: 600;
+      color: var(--fg);
+      word-break: break-word;
+    }
+    .med-grupo {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    li:hover {
+      background: var(--hover);
+      border-color: rgba(79, 70, 229, 0.15);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 12px;
+      text-align: center;
+    }
+    .error {
+      color: #b91c1c;
+      padding: 12px;
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      border-radius: var(--radius);
+      margin-top: 10px;
+    }
+
+    /* scrollbar no dark pra não sumir */
+    :root[data-theme="dark"] ::-webkit-scrollbar {
+      width: 6px;
+    }
+    :root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 9999px;
+    }
   </style>
 </head>
 <body>
@@ -79,14 +165,26 @@
     tg?.enableClosingConfirmation?.(false);
     tg?.BackButton?.hide?.(); // sem back integrado do Telegram
 
-    // Aplicar tema do Telegram
-    try {
-      const t = tg?.themeParams || {};
-      if (t.bg_color) document.documentElement.style.setProperty('--bg', '#'+t.bg_color);
-      if (t.text_color) document.documentElement.style.setProperty('--fg', '#'+t.text_color);
-      if (t.hint_color) document.documentElement.style.setProperty('--muted', '#'+t.hint_color);
-      if (t.section_separator_color) document.documentElement.style.setProperty('--border', '#'+t.section_separator_color);
-    } catch(e){}
+    // 1) detectar esquema do Telegram e aplicar no <html>
+    function applyTelegramTheme() {
+      const scheme = tg?.colorScheme || 'light';
+      document.documentElement.setAttribute('data-theme', scheme);
+
+      // se quiser absorver as cores específicas do tema do usuário:
+      const p = tg?.themeParams || {};
+      // só sobrescreve se o Telegram mandou
+      if (p.bg_color)      document.documentElement.style.setProperty('--bg', '#' + p.bg_color);
+      if (p.secondary_bg_color) document.documentElement.style.setProperty('--bg-soft', '#' + p.secondary_bg_color);
+      if (p.text_color)    document.documentElement.style.setProperty('--fg', '#' + p.text_color);
+      if (p.hint_color)    document.documentElement.style.setProperty('--muted', '#' + p.hint_color);
+      if (p.section_separator_color) document.documentElement.style.setProperty('--border', '#' + p.section_separator_color);
+      if (scheme === 'dark') {
+        // garantir contraste dos cards no dark, mesmo se o tema não mandar
+        document.documentElement.style.setProperty('--card', 'rgba(15, 23, 42, 0.45)');
+      }
+    }
+    applyTelegramTheme();
+    tg?.onEvent?.('themeChanged', applyTelegramTheme);
 
     const $q = document.getElementById('q');
     const $list = document.getElementById('list');
@@ -97,11 +195,32 @@
 
     function render(items) {
       $list.innerHTML = '';
-      if (!items.length) { $empty.style.display = 'block'; return; }
+      if (!items.length) {
+        $empty.style.display = 'block';
+        return;
+      }
       $empty.style.display = 'none';
       for (const item of items) {
         const li = document.createElement('li');
-        li.textContent = item.produto_desc;
+
+        // bloco de texto separado, pra estilizar melhor
+        const nome = document.createElement('div');
+        nome.className = 'med-nome';
+        nome.textContent = item.produto_desc;
+
+        const grupo = document.createElement('div');
+        grupo.className = 'med-grupo';
+        // mostra grupo/subgrupo se tivermos
+        const partes = [];
+        if (item.grupo_desc) partes.push(item.grupo_desc);
+        if (item.subgrupo_desc) partes.push(item.subgrupo_desc);
+        grupo.textContent = partes.join(' • ');
+
+        li.appendChild(nome);
+        if (partes.length) {
+          li.appendChild(grupo);
+        }
+
         li.addEventListener('click', () => {
           // Envio imediato ao bot, sem popups
           try {
@@ -113,10 +232,13 @@
               subgrupo_recnum: item.subgrupo_recnum,
               subgrupo_desc:   item.subgrupo_desc
             }));
-          } catch(e) { console.error('sendData falhou', e); }
+          } catch(e) {
+            console.error('sendData falhou', e);
+          }
           // Fecha após pequeno delay para garantir o envio
           setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
         });
+
         $list.appendChild(li);
       }
     }
@@ -130,8 +252,13 @@
       clearTimeout(timer);
       timer = setTimeout(() => {
         const term = normalize($q.value.trim());
-        if (!term) { render(meds.slice(0, 5)); return; }
-        const filtered = meds.filter(m => normalize(m.produto_desc).includes(term)).slice(0, 5);
+        if (!term) {
+          render(meds.slice(0, 5));
+          return;
+        }
+        const filtered = meds
+          .filter(m => normalize(m.produto_desc).includes(term))
+          .slice(0, 5);
         render(filtered);
       }, 100);
     }
