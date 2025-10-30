@@ -11,14 +11,11 @@
 
   <style>
     :root {
-      /* padrões p/ claro */
-      --bg: #ffffff;
-      --bg2: #f5f5f5;
-      --fg: #111111;
-      --muted: #777777;
-      --border: #e6e6e6;
-      --card: #ffffff;
-      --card-hover: #f1f1f1;
+      --bg: #e5e7eb;       /* cinza claro */
+      --card: #ffffff;     /* cards brancos */
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #0f172a;
+      --muted: #6b7280;
     }
 
     * { box-sizing: border-box; }
@@ -27,7 +24,7 @@
       font: 16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial;
       margin: 12px;
       background: var(--bg);
-      color: var(--fg);
+      color: var(--text);
       min-height: 100vh;
     }
 
@@ -46,25 +43,25 @@
     input {
       width: 100%;
       padding: 12px 12px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(15, 23, 42, 0.05);
       border-radius: 12px;
       font-size: 16px;
-      background: var(--card);
-      color: var(--fg);
+      background: #ffffff;
+      color: var(--text);
       outline: none;
     }
     input::placeholder { color: var(--muted); }
 
     button {
       padding: 10px 14px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(15, 23, 42, 0.05);
       border-radius: 12px;
       font-size: 14px;
-      background: var(--card);
-      color: var(--fg);
+      background: #ffffff;
+      color: var(--text);
       cursor: pointer;
     }
-    button:hover { background: var(--card-hover); }
+    button:active { filter: brightness(0.97); }
 
     ul {
       list-style: none;
@@ -76,26 +73,25 @@
 
     li {
       padding: 12px;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(15, 23, 42, 0.04);
       border-radius: 12px;
       margin-top: 8px;
       cursor: pointer;
       line-height: 1.25;
       background: var(--card);
-      color: var(--fg);
       display: flex;
       flex-direction: column;
       gap: 4px;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03);
     }
-
     li:hover {
-      border-color: #d6d6d6;
-      background: var(--card-hover);
+      background: #f8fafc;
+      border-color: rgba(15, 23, 42, 0.08);
     }
 
     .med-nome {
       font-weight: 600;
-      color: var(--fg);
+      color: var(--text);
       word-break: break-word;
     }
     .med-grupo {
@@ -107,26 +103,15 @@
       color: var(--muted);
       padding: 12px;
       text-align: center;
-      background: var(--card);
-      border: 1px solid transparent;
-      border-radius: 12px;
-      margin-top: 8px;
-    }
-    .error {
-      color: #ff6b6b;
-      padding: 12px;
-      background: rgba(255, 107, 107, 0.1);
-      border: 1px solid rgba(255, 107, 107, 0.35);
-      border-radius: 12px;
-      margin-top: 8px;
     }
 
-    :root[data-forced-dark="1"] ::-webkit-scrollbar {
-      width: 6px;
-    }
-    :root[data-forced-dark="1"] ::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.25);
-      border-radius: 9999px;
+    .error {
+      color: #b91c1c;
+      padding: 12px;
+      background: rgba(248, 113, 113, 0.07);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      border-radius: 12px;
+      margin-top: 8px;
     }
   </style>
 </head>
@@ -146,86 +131,6 @@
     tg?.expand?.();
     tg?.enableClosingConfirmation?.(false);
     tg?.BackButton?.hide?.();
-
-    // util: saber se uma cor é clara
-    function isColorLight(hex) {
-      if (!hex) return false;
-      const h = hex.replace('#', '');
-      if (h.length !== 6) return false;
-      const r = parseInt(h.substr(0, 2), 16);
-      const g = parseInt(h.substr(2, 2), 16);
-      const b = parseInt(h.substr(4, 2), 16);
-      const l = (0.2126*r + 0.7152*g + 0.0722*b);
-      return l > 180;
-    }
-
-    // detecta dark do dispositivo
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-
-    function applyTheme() {
-      const t = tg?.themeParams || {};
-      const schemeFromTelegram = tg?.colorScheme; // 'dark' | 'light' | undefined
-
-      // cores que podem vir do Telegram
-      const bg      = t.bg_color ? `#${t.bg_color}` : null;
-      const bg2     = t.secondary_bg_color ? `#${t.secondary_bg_color}` : null;
-      const text    = t.text_color ? `#${t.text_color}` : null;
-      const hint    = t.hint_color ? `#${t.hint_color}` : null;
-      const border  = t.section_separator_color ? `#${t.section_separator_color}` : null;
-
-      // aplica direto o que vier
-      if (bg)    document.documentElement.style.setProperty('--bg', bg);
-      if (bg2)   document.documentElement.style.setProperty('--bg2', bg2);
-      if (text)  document.documentElement.style.setProperty('--fg', text);
-      if (hint)  document.documentElement.style.setProperty('--muted', hint);
-      if (border)document.documentElement.style.setProperty('--border', border);
-
-      // 1) prioridade: telegram
-      let isDark = schemeFromTelegram === 'dark';
-
-      // 2) se o telegram não falou nada, olha o device
-      if (!schemeFromTelegram && prefersDark?.matches) {
-        isDark = true;
-      }
-
-      // 3) se ainda não temos certeza mas recebemos text claro do telegram, força dark
-      if (!isDark && text && isColorLight(text)) {
-        isDark = true;
-      }
-
-      if (isDark) {
-        document.documentElement.dataset.forcedDark = '1';
-        document.documentElement.style.setProperty('--bg', bg || '#0f172a');
-        document.documentElement.style.setProperty('--bg2', bg2 || '#111827');
-        document.documentElement.style.setProperty('--card', 'rgba(15,23,42,0.35)');
-        document.documentElement.style.setProperty('--card-hover', 'rgba(148,163,184,0.08)');
-        document.documentElement.style.setProperty('--fg', text || '#e2e8f0');
-        document.documentElement.style.setProperty('--muted', hint || '#94a3b8');
-        document.documentElement.style.setProperty('--border', border || 'rgba(148,163,184,0.35)');
-      } else {
-        document.documentElement.dataset.forcedDark = '0';
-        document.documentElement.style.setProperty('--bg', bg || '#ffffff');
-        document.documentElement.style.setProperty('--card', '#ffffff');
-        document.documentElement.style.setProperty('--card-hover', '#f1f1f1');
-        document.documentElement.style.setProperty('--fg', text || '#111111');
-        document.documentElement.style.setProperty('--muted', hint || '#777777');
-        document.documentElement.style.setProperty('--border', border || '#e6e6e6');
-      }
-    }
-
-    // aplica já
-    applyTheme();
-
-    // se o telegram mudar de tema
-    tg?.onEvent?.('themeChanged', applyTheme);
-
-    // se o device mudar de tema enquanto o webapp está aberto
-    if (prefersDark && prefersDark.addEventListener) {
-      prefersDark.addEventListener('change', applyTheme);
-    } else if (prefersDark && prefersDark.addListener) {
-      // safari velho
-      prefersDark.addListener(applyTheme);
-    }
 
     const $q = document.getElementById('q');
     const $list = document.getElementById('list');
@@ -270,12 +175,10 @@
               subgrupo_recnum: item.subgrupo_recnum,
               subgrupo_desc:   item.subgrupo_desc
             }));
-          } catch (e) {
+          } catch(e) {
             console.error('sendData falhou', e);
           }
-          setTimeout(() => {
-            try { tg?.close(); } catch (_) {}
-          }, 150);
+          setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
         });
 
         $list.appendChild(li);
@@ -307,8 +210,8 @@
     $q.addEventListener('input', onInput);
 
     $btnCancel.addEventListener('click', () => {
-      try { tg?.sendData(JSON.stringify({ cancel: true })); } catch (_) {}
-      setTimeout(() => { try { tg?.close(); } catch (_) {} }, 150);
+      try { tg?.sendData(JSON.stringify({ cancel: true })); } catch(_) {}
+      setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
     });
 
     async function loadData() {
@@ -317,16 +220,15 @@
         if (!res.ok) throw new Error('HTTP ' + res.status);
         meds = await res.json();
         meds = Array.isArray(meds) ? meds.filter(m => m?.produto_desc) : [];
-        meds.sort((a, b) => a.produto_desc.localeCompare(b.produto_desc));
+        meds.sort((a,b)=>a.produto_desc.localeCompare(b.produto_desc));
         render(meds.slice(0, 5));
         $q.focus();
-      } catch (e) {
+      } catch(e) {
         console.error('Erro ao carregar dropmed.json:', e);
         $err.textContent = 'Falha ao carregar a lista de medicamentos.';
         $err.style.display = 'block';
       }
     }
-
     loadData();
   </script>
 </body>
