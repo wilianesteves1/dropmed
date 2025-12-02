@@ -267,8 +267,9 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                token: token,
-                medicamento: item.produto_desc,
+                token: token,                    // aqui estamos usando phone como token
+                produto_recnum: item.produto_recnum,
+                produto_desc: item.produto_desc,
               }),
             });
 
