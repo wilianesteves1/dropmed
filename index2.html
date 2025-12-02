@@ -113,6 +113,23 @@
       border-radius: 12px;
       margin-top: 8px;
     }
+
+    .info {
+      color: #1d4ed8;
+      padding: 12px;
+      background: rgba(59, 130, 246, 0.07);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -124,61 +141,153 @@
   <ul id="list"></ul>
   <div id="empty" class="empty" style="display:none;">Nenhum resultado</div>
   <div id="err" class="error" style="display:none;"></div>
+  <div id="info" class="info" style="display:none;"></div>
+
+  <div class="actions">
+    <button id="btn-whatsapp" type="button" style="display:none;">
+      Voltar para o WhatsApp
+    </button>
+  </div>
 
   <script>
+    // ==========================================================
+    // Detecção de ambiente e configuração
+    // ==========================================================
+
     const tg = window.Telegram?.WebApp;
     tg?.ready();
     tg?.expand?.();
     tg?.enableClosingConfirmation?.(false);
     tg?.BackButton?.hide?.();
 
-    const $q = document.getElementById('q');
-    const $list = document.getElementById('list');
-    const $empty = document.getElementById('empty');
-    const $err = document.getElementById('err');
-    const $btnCancel = document.getElementById('btn-cancelar');
+    const isTelegram = !!tg?.initDataUnsafe; // "modo Telegram" vs navegador comum
+
+    // URL do backend de medicamentos no Railway
+    const BACKEND_URL = "https://medicamentos-production.up.railway.app";
+
+    // Lê ?token= da URL (para uso via WhatsApp)
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token") || "";
+
+    const $q = document.getElementById("q");
+    const $list = document.getElementById("list");
+    const $empty = document.getElementById("empty");
+    const $err = document.getElementById("err");
+    const $info = document.getElementById("info");
+    const $btnCancel = document.getElementById("btn-cancelar");
+    const $btnWhats = document.getElementById("btn-whatsapp");
     let meds = [];
 
+    function clearMessages() {
+      $err.style.display = "none";
+      $info.style.display = "none";
+      $err.textContent = "";
+      $info.textContent = "";
+    }
+
+    function showError(msg) {
+      $err.textContent = msg;
+      $err.style.display = "block";
+    }
+
+    function showInfo(msg) {
+      $info.textContent = msg;
+      $info.style.display = "block";
+    }
+
+    function disableInteractions() {
+      $q.disabled = true;
+      const items = $list.querySelectorAll("li");
+      items.forEach(li => li.style.pointerEvents = "none");
+    }
+
     function render(items) {
-      $list.innerHTML = '';
+      $list.innerHTML = "";
+      clearMessages();
       if (!items.length) {
-        $empty.style.display = 'block';
+        $empty.style.display = "block";
         return;
       }
-      $empty.style.display = 'none';
+      $empty.style.display = "none";
       for (const item of items) {
-        const li = document.createElement('li');
+        const li = document.createElement("li");
 
-        const nome = document.createElement('div');
-        nome.className = 'med-nome';
+        const nome = document.createElement("div");
+        nome.className = "med-nome";
         nome.textContent = item.produto_desc;
 
-        const grupo = document.createElement('div');
-        grupo.className = 'med-grupo';
+        const grupo = document.createElement("div");
+        grupo.className = "med-grupo";
         const partes = [];
         if (item.grupo_desc) partes.push(item.grupo_desc);
         if (item.subgrupo_desc) partes.push(item.subgrupo_desc);
-        grupo.textContent = partes.join(' • ');
+        grupo.textContent = partes.join(" • ");
 
         li.appendChild(nome);
         if (partes.length) {
           li.appendChild(grupo);
         }
 
-        li.addEventListener('click', () => {
-          try {
-            tg?.sendData(JSON.stringify({
-              produto_recnum:  item.produto_recnum,
-              produto_desc:    item.produto_desc,
-              grupo_recnum:    item.grupo_recnum,
-              grupo_desc:      item.grupo_desc,
-              subgrupo_recnum: item.subgrupo_recnum,
-              subgrupo_desc:   item.subgrupo_desc
-            }));
-          } catch(e) {
-            console.error('sendData falhou', e);
+        li.addEventListener("click", async () => {
+          clearMessages();
+
+          // Modo Telegram (WebApp): mantém o comportamento atual
+          if (isTelegram) {
+            try {
+              tg?.sendData(
+                JSON.stringify({
+                  produto_recnum:  item.produto_recnum,
+                  produto_desc:    item.produto_desc,
+                  grupo_recnum:    item.grupo_recnum,
+                  grupo_desc:      item.grupo_desc,
+                  subgrupo_recnum: item.subgrupo_recnum,
+                  subgrupo_desc:   item.subgrupo_desc,
+                })
+              );
+            } catch (e) {
+              console.error("sendData falhou", e);
+            }
+            setTimeout(() => {
+              try { tg?.close(); } catch (_) {}
+            }, 150);
+            return;
           }
-          setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
+
+          // Modo navegador normal (WhatsApp abre o link)
+          if (!token) {
+            showError("Link inválido: token não informado.");
+            return;
+          }
+
+          try {
+            disableInteractions();
+            showInfo("Enviando sua seleção...");
+
+            const resp = await fetch(BACKEND_URL + "/escolha", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                token: token,
+                medicamento: item.produto_desc,
+              }),
+            });
+
+            if (!resp.ok) {
+              throw new Error("HTTP " + resp.status);
+            }
+
+            showInfo("Seleção enviada. Você já pode voltar para o WhatsApp.");
+            if ($btnWhats) {
+              $btnWhats.style.display = "inline-block";
+            }
+          } catch (e) {
+            console.error("Falha ao enviar seleção:", e);
+            showError("Não foi possível enviar sua seleção. Tente novamente.");
+            // Reabilita entrada em caso de erro
+            $q.disabled = false;
+            const items = $list.querySelectorAll("li");
+            items.forEach(li => li.style.pointerEvents = "auto");
+          }
         });
 
         $list.appendChild(li);
@@ -186,9 +295,9 @@
     }
 
     function normalize(s) {
-      return (s || '')
-        .normalize('NFD')
-        .replace(/\p{Diacritic}/gu, '')
+      return (s || "")
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "")
         .toLowerCase();
     }
 
@@ -196,37 +305,70 @@
     function onInput() {
       clearTimeout(timer);
       timer = setTimeout(() => {
+        clearMessages();
         const term = normalize($q.value.trim());
         if (!term) {
           render(meds.slice(0, 5));
           return;
         }
         const filtered = meds
-          .filter(m => normalize(m.produto_desc).includes(term))
+          .filter((m) => normalize(m.produto_desc).includes(term))
           .slice(0, 5);
         render(filtered);
       }, 90);
     }
-    $q.addEventListener('input', onInput);
+    $q.addEventListener("input", onInput);
 
-    $btnCancel.addEventListener('click', () => {
-      try { tg?.sendData(JSON.stringify({ cancel: true })); } catch(_) {}
-      setTimeout(() => { try { tg?.close(); } catch(_){} }, 150);
+    // Botão cancelar
+    $btnCancel.addEventListener("click", () => {
+      clearMessages();
+
+      // No Telegram, mantém o comportamento atual
+      if (isTelegram) {
+        try {
+          tg?.sendData(JSON.stringify({ cancel: true }));
+        } catch (_) {}
+        setTimeout(() => {
+          try { tg?.close(); } catch (_) {}
+        }, 150);
+        return;
+      }
+
+      // Fora do Telegram: tenta voltar para tela anterior ou fechar
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // fallback: tenta fechar ou, no pior caso, não faz nada
+        window.close();
+      }
     });
+
+    // Botão "Voltar para o WhatsApp" (apenas modo navegador)
+    if ($btnWhats) {
+      $btnWhats.addEventListener("click", () => {
+        // Tenta abrir/voltar para o app WhatsApp
+        try {
+          window.location.href = "whatsapp://";
+        } catch (e) {
+          console.error("Falha ao abrir WhatsApp:", e);
+        }
+      });
+    }
 
     async function loadData() {
       try {
-        const res = await fetch('./dropmed.json?v=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const res = await fetch("./dropmed.json?v=" + Date.now(), {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
         meds = await res.json();
-        meds = Array.isArray(meds) ? meds.filter(m => m?.produto_desc) : [];
-        meds.sort((a,b)=>a.produto_desc.localeCompare(b.produto_desc));
+        meds = Array.isArray(meds) ? meds.filter((m) => m?.produto_desc) : [];
+        meds.sort((a, b) => a.produto_desc.localeCompare(b.produto_desc));
         render(meds.slice(0, 5));
         $q.focus();
-      } catch(e) {
-        console.error('Erro ao carregar dropmed.json:', e);
-        $err.textContent = 'Falha ao carregar a lista de medicamentos.';
-        $err.style.display = 'block';
+      } catch (e) {
+        console.error("Erro ao carregar dropmed.json:", e);
+        showError("Falha ao carregar a lista de medicamentos.");
       }
     }
     loadData();
