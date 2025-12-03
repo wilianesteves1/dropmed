@@ -263,7 +263,7 @@
             disableInteractions();
             showInfo("Enviando sua seleção...");
 
-            const resp = await fetch(BACKEND_URL + "/escolha", {
+              const resp = await fetch(BACKEND_URL + "/escolha", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -273,8 +273,30 @@
               }),
             });
 
+            // === ADICIONE ESTES LOGS PARA DEPURAÇÃO ===
+            console.log("URL chamada:", BACKEND_URL + "/escolha");
+            console.log("Token enviado:", token);
+            console.log("Status da resposta:", resp.status);
+            console.log("Status OK?", resp.ok);
+            
+            // Tente ler a resposta como texto primeiro para debug
+            const responseText = await resp.text();
+            console.log("Resposta bruta:", responseText);
+            
+            // Tente parsear como JSON se possível
+            let responseData;
+            try {
+              responseData = JSON.parse(responseText);
+              console.log("Resposta parseada:", responseData);
+            } catch (e) {
+              console.log("Resposta não é JSON válido");
+              responseData = { error: "Resposta inválida do servidor" };
+            }
+            // === FIM DOS LOGS DE DEPURAÇÃO ===
+
             // TOKEN EXPIRADO
             if (resp.status === 410) {
+              console.log("Token expirado detectado");
               showError("Limite de tempo encerrado. Volte ao menu do WhatsApp e reinicie.");
               $btnWhats.style.display = "inline-block";
               return;
@@ -282,12 +304,14 @@
 
             // QUALQUER OUTRO ERRO HTTP
             if (!resp.ok) {
-              showError("Não foi possível enviar sua seleção. Volte ao WhatsApp e tente novamente.");
+              console.log("Erro HTTP:", resp.status, responseData);
+              showError(`Erro ${resp.status}: ${responseData.error || "Não foi possível enviar sua seleção. Volte ao WhatsApp e tente novamente."}`);
               $btnWhats.style.display = "inline-block";
               return;
             }
 
             // SUCESSO
+            console.log("Sucesso! Dados:", responseData);
             showInfo("Seleção enviada com sucesso! Volte ao WhatsApp para continuar.");
 
             // Exibe botão manual
