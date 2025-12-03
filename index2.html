@@ -267,28 +267,52 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                token: token,                    // aqui estamos usando phone como token
+                token: token,
                 produto_recnum: item.produto_recnum,
                 produto_desc: item.produto_desc,
               }),
             });
 
-            if (!resp.ok) {
-              throw new Error("HTTP " + resp.status);
+            // TOKEN EXPIRADO
+            if (resp.status === 410) {
+              showError("Limite de tempo encerrado. Volte ao menu do WhatsApp e reinicie.");
+              $btnWhats.style.display = "inline-block";
+              return;
             }
 
-            showInfo("Seleção enviada. Você já pode voltar para o WhatsApp.");
+            // QUALQUER OUTRO ERRO HTTP
+            if (!resp.ok) {
+              showError("Não foi possível enviar sua seleção. Volte ao WhatsApp e tente novamente.");
+              $btnWhats.style.display = "inline-block";
+              return;
+            }
+
+            // SUCESSO
+            showInfo("Seleção enviada com sucesso! Volte ao WhatsApp para continuar.");
+
+            // Exibe botão manual
             if ($btnWhats) {
               $btnWhats.style.display = "inline-block";
             }
+
+            // Tenta voltar automaticamente ao WhatsApp
+            setTimeout(() => {
+              try {
+                const phone = token.split("|")[0].replace(/\D/g, "");
+                if (phone) {
+                  window.location.href = "whatsapp://send?phone=" + phone;
+                } else {
+                  window.location.href = "whatsapp://";
+                }
+              } catch (_) {}
+            }, 600);
+
           } catch (e) {
             console.error("Falha ao enviar seleção:", e);
-            showError("Não foi possível enviar sua seleção. Tente novamente.");
-            // Reabilita entrada em caso de erro
-            $q.disabled = false;
-            const items = $list.querySelectorAll("li");
-            items.forEach(li => li.style.pointerEvents = "auto");
+            showError("Falha ao enviar sua seleção. Volte ao WhatsApp e tente novamente.");
+            $btnWhats.style.display = "inline-block";
           }
+
         });
 
         $list.appendChild(li);
